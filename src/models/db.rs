@@ -35,6 +35,13 @@ impl Db {
         Ok(result)
 
     }
+
+    pub async fn list_all(&self) -> Result<Vec<Todo>, Box<dyn std::error::Error>> {
+        let db = SqlitePool::connect(self.env.tbl_name()).await?;
+        let result = sqlx::query_as::<_, Todo>("SELECT * FROM todos").fetch_all(&db).await?;
+
+        Ok(result)
+    }
 }
 
 pub enum DbError {
@@ -59,5 +66,16 @@ mod tests {
         let todo = Todo::new(id, "test".into(), false, 0, 0);
         db.insert(&todo).await.expect("Could not insert");
         let _todo = db.get(todo.get_id()).await.expect("Could not retrieve todo after insert");
+    }
+
+    #[tokio::test]
+    async fn test_list_todo_does_not_panic() {
+        let db = Db::new(Env::Test).await.expect("Could not get db");
+        let id = Uuid::new_v4().to_string();
+        let todo = Todo::new(id, "test".into(), false, 0, 0);
+        db.insert(&todo).await.expect("Could not insert todo");
+        let todo_vec = db.list_all().await.expect("Could not list all todos");
+        assert!(todo_vec.iter().count() > 0);
+        assert!(todo_vec.iter().filter(|todo_filter| todo_filter.id == todo.id).collect::<Vec<&Todo>>().len() > 0);
     }
 }

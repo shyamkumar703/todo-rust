@@ -5,8 +5,8 @@ pub struct Todo {
     pub id: String,
     title: String,
     is_completed: u8,
-    created_at: i32,
-    updated_at: i32,
+    created_at: i64,
+    updated_at: i64,
 }
 
 impl Todo {
@@ -14,8 +14,8 @@ impl Todo {
         id: String,
         title: String,
         is_completed: bool,
-        created_at: i32,
-        updated_at: i32,
+        created_at: i64,
+        updated_at: i64,
     ) -> Todo {
         println!("{}", id);
         Self {
