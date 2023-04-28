@@ -42,6 +42,13 @@ impl Db {
 
         Ok(result)
     }
+
+    pub async fn mark_as_complete(&self, id: &String) -> Result<(), Box<dyn std::error::Error>> {
+        let db = SqlitePool::connect(self.env.tbl_name()).await?;
+        sqlx::query("UPDATE todos SET is_completed = 1 WHERE id = $1").bind(id).execute(&db).await?;
+
+        Ok(())
+    }
 }
 
 pub enum DbError {
@@ -77,5 +84,17 @@ mod tests {
         let todo_vec = db.list_all().await.expect("Could not list all todos");
         assert!(todo_vec.iter().count() > 0);
         assert!(todo_vec.iter().filter(|todo_filter| todo_filter.id == todo.id).collect::<Vec<&Todo>>().len() > 0);
+    }
+
+    #[tokio::test]
+    async fn test_mark_as_complete_works() {
+        let db = Db::new(Env::Test).await.expect("Could not get db");
+        let id = Uuid::new_v4().to_string();
+        let todo = Todo::new(id, "test".into(), false, 0, 0);
+        db.insert(&todo).await.expect("Could not insert todo");
+        db.mark_as_complete(&todo.id).await.expect("Could not mark todo as complete");
+        let todo = db.get(&todo.id).await.expect("Could not get updated todo");
+        assert_eq!(todo.is_completed, 1);
+
     }
 }

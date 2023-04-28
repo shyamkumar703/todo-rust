@@ -4,7 +4,7 @@ use sqlx::{query::Query, sqlite::SqliteArguments, FromRow, Sqlite};
 pub struct Todo {
     pub id: String,
     title: String,
-    is_completed: u8,
+    pub is_completed: u8,
     created_at: i64,
     updated_at: i64,
 }
