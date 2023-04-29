@@ -38,7 +38,7 @@ impl Db {
 
     pub async fn list_all(&self) -> Result<Vec<Todo>, Box<dyn std::error::Error>> {
         let db = SqlitePool::connect(self.env.tbl_name()).await?;
-        let result = sqlx::query_as::<_, Todo>("SELECT * FROM todos").fetch_all(&db).await?;
+        let result = sqlx::query_as::<_, Todo>("SELECT * FROM todos ORDER BY created_at").fetch_all(&db).await?;
 
         Ok(result)
     }
@@ -49,6 +49,13 @@ impl Db {
         sqlx::query("UPDATE todos SET is_completed = 1, updated_at = $1 WHERE id = $2").bind(now).bind(id).execute(&db).await?;
 
         Ok(())
+    }
+
+    pub async fn get_recent_todos(&self, limit: u32) -> Result<Vec<Todo>, Box<dyn std::error::Error>> {
+        let db = SqlitePool::connect(self.env.tbl_name()).await?;
+        let result = sqlx::query_as::<_, Todo>("SELECT * FROM todos ORDER BY created_at DESC LIMIT $1").bind(limit).fetch_all(&db).await?;
+
+        Ok(result)
     }
 }
 
@@ -98,5 +105,22 @@ mod tests {
         assert_eq!(todo_updated.is_completed, 1);
         assert_ne!(todo.updated_at, todo_updated.updated_at);
 
+    }
+
+    #[tokio::test]
+    async fn test_get_recent_todos() {
+        let now = chrono::offset::Utc::now().timestamp_millis();
+        let db = Db::new(Env::Test).await.expect("Could not get db");
+
+        let id1 = Uuid::new_v4().to_string();
+        let todo1 = Todo::new(id1, "test".into(), false, now, now);
+        db.insert(&todo1).await.expect("Could not insert todo");
+
+        let id2 = Uuid::new_v4().to_string();
+        let todo2 = Todo::new(id2, "test".into(), false, now, now);
+        db.insert(&todo2).await.expect("Could not insert todo");
+
+        let recent_todos = db.get_recent_todos(2).await.expect("Could not get recent todos");
+        assert!(recent_todos.iter().filter(|todo| todo.id == todo1.id || todo.id == todo2.id).count() == 2);
     }
 }

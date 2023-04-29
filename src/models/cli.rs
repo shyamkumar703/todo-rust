@@ -6,5 +6,7 @@ pub struct Cli {
     #[clap(long, short)]
     pub complete: Option<String>,
     #[clap(long, short, action)]
-    pub list_todos: bool
+    pub list_todos: bool,
+    #[clap(long, short)]
+    pub top: Option<u32>
 }
