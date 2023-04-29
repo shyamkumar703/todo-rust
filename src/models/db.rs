@@ -44,8 +44,9 @@ impl Db {
     }
 
     pub async fn mark_as_complete(&self, id: &String) -> Result<(), Box<dyn std::error::Error>> {
+        let now = chrono::offset::Utc::now().timestamp_millis();
         let db = SqlitePool::connect(self.env.tbl_name()).await?;
-        sqlx::query("UPDATE todos SET is_completed = 1 WHERE id = $1").bind(id).execute(&db).await?;
+        sqlx::query("UPDATE todos SET is_completed = 1, updated_at = $1 WHERE id = $2").bind(now).bind(id).execute(&db).await?;
 
         Ok(())
     }
@@ -93,8 +94,9 @@ mod tests {
         let todo = Todo::new(id, "test".into(), false, 0, 0);
         db.insert(&todo).await.expect("Could not insert todo");
         db.mark_as_complete(&todo.id).await.expect("Could not mark todo as complete");
-        let todo = db.get(&todo.id).await.expect("Could not get updated todo");
-        assert_eq!(todo.is_completed, 1);
+        let todo_updated = db.get(&todo.id).await.expect("Could not get updated todo");
+        assert_eq!(todo_updated.is_completed, 1);
+        assert_ne!(todo.updated_at, todo_updated.updated_at);
 
     }
 }

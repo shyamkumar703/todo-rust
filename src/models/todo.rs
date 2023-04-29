@@ -3,10 +3,10 @@ use sqlx::{query::Query, sqlite::SqliteArguments, FromRow, Sqlite};
 #[derive(Clone, FromRow, Debug)]
 pub struct Todo {
     pub id: String,
-    title: String,
+    pub title: String,
     pub is_completed: u8,
-    created_at: i64,
-    updated_at: i64,
+    pub created_at: i64,
+    pub updated_at: i64,
 }
 
 impl Todo {
