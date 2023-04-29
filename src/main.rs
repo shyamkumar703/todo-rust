@@ -36,6 +36,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let todo_list = db.list_all().await?;
         display_todo_vec(todo_list);
         Ok(())
+    } else if args.incomplete {
+        let todo_list = db.get_incomplete_todos().await?;
+        display_todo_vec(todo_list);
+        Ok(())
     } else {
         println!("Invalid arguments");
         Ok(())

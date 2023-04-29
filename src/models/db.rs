@@ -59,8 +59,10 @@ impl Db {
     }
 
     pub async fn get_incomplete_todos(&self) -> Result<Vec<Todo>, Box<dyn std::error::Error>> {
+        let db = SqlitePool::connect(self.env.tbl_name()).await?;
+        let result = sqlx::query_as::<_, Todo>("SELECT * FROM todos WHERE is_completed=0 ORDER BY created_at").fetch_all(&db).await?;
 
-        Ok(vec![])
+        Ok(result)
     }
 }
 
