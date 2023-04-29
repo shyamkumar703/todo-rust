@@ -8,5 +8,7 @@ pub struct Cli {
     #[clap(long, short, action)]
     pub list_todos: bool,
     #[clap(long, short)]
-    pub top: Option<u32>
+    pub top: Option<u32>,
+    #[clap(long, short, action)]
+    pub incomplete: bool
 }

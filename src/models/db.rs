@@ -57,6 +57,11 @@ impl Db {
 
         Ok(result)
     }
+
+    pub async fn get_incomplete_todos(&self) -> Result<Vec<Todo>, Box<dyn std::error::Error>> {
+
+        Ok(vec![])
+    }
 }
 
 pub enum DbError {
@@ -122,5 +127,26 @@ mod tests {
 
         let recent_todos = db.get_recent_todos(2).await.expect("Could not get recent todos");
         assert!(recent_todos.iter().filter(|todo| todo.id == todo1.id || todo.id == todo2.id).count() == 2);
+    }
+
+    #[tokio::test]
+    async fn test_get_incomplete_todos() {
+        let db = Db::new(Env::Test).await.expect("Could not get db");
+        let todo = Todo::new(
+            Uuid::new_v4().to_string(),
+            "test".into(),
+            false,
+            0,
+            0
+        );
+        db.insert(&todo).await.expect("Could not insert todo");
+
+        let incomplete_todos = db.get_incomplete_todos().await.expect("Could not get incomplete todos");
+        assert!(incomplete_todos.iter().filter(|todo_filter| todo_filter.id == todo.id).count() == 1);
+
+        db.mark_as_complete(&todo.id).await.expect("Could not mark todo as complete");
+
+        let incomplete_todos = db.get_incomplete_todos().await.expect("Could not get incomplete todos");
+        assert!(incomplete_todos.iter().filter(|todo_filter| todo_filter.id == todo.id).count() == 0);
     }
 }
