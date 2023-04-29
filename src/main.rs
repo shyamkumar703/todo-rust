@@ -53,6 +53,6 @@ fn display_todo_vec(todo_vec: Vec<Todo>) {
         } else {
             "incomplete"
         };
-        println!("{}\t{}\t{}", todo.title, is_completed, todo.get_id());
+        println!("{:<20}\t{:^20}\t{:>40}", todo.title, is_completed, todo.get_id());
     });
 }
